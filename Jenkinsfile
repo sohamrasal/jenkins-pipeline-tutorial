@@ -1,29 +1,43 @@
-// Declarative pipelines must be enclosed with a "pipeline" directive.
+And change AWS_ACCOUNT_ID, AWS_DEFAULT_REGION_IMAGE_REPO_NAME
 pipeline {
-    // This line is required for declarative pipelines. Just keep it here.
-    agent any
-
-    // This section contains environment variables which are available for use in the
-    // pipeline's stages.
-    environment {
-	    region = "us-east-1"
-        docker_repo_uri = ""
-		task_def_arn = ""
-        cluster = ""
-        exec_role_arn = ""
-    }
-    
-    // Here you can define one or more stages for your pipeline.
-    // Each stage can execute one or more steps.
-    stages {
-        // This is a stage.
-        stage('Example') {
-            steps {
-                // This is a step of type "echo". It doesn't do much, only prints some text.
-                echo 'This is a sample stage'
-                // For a list of all the supported steps, take a look at
-                // https://jenkins.io/doc/pipeline/steps/ .
-            }
-        }
-    }
+ agent any
+ environment {
+ AWS_ACCOUNT_ID="653668633498"
+ AWS_DEFAULT_REGION="eu-north-1" 
+ IMAGE_REPO_NAME="awstest"
+ IMAGE_TAG="latest"
+ REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+ }
+ 
+ stages {
+ 
+ stage('Logging into AWS ECR') {
+ steps {
+ script {
+ sh "aws ecr get-login-password - region ${AWS_DEFAULT_REGION} | docker login - username AWS - password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+ }
+ 
+ }
+ }
+ 
+ 
+ // Building Docker images
+ stage('Building image') {
+ steps{
+ script {
+ dockerImage = docker.build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+ }
+ }
+ }
+ 
+ // Uploading Docker images into AWS ECR
+ stage('Pushing to ECR') {
+ steps{ 
+ script {
+ sh "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+ sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+ }
+ }
+ }
+ }
 }
