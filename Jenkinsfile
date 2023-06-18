@@ -16,7 +16,7 @@ pipeline {
  AWS_ACCOUNT_ID="653668633498"
  AWS_DEFAULT_REGION="eu-north-1" 
  IMAGE_REPO_NAME="awstest"
- IMAGE_TAG="latest"
+ IMAGE_TAG="jenkins"
  REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
  task_def_arn = "arn:aws:ecs:ap-southeast-1:048134285155:task-definition/Jenkins"
 // cluster = "Amey-test"
